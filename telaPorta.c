@@ -4,25 +4,27 @@ ALLEGRO_BITMAP *fundo = NULL;
 ALLEGRO_DISPLAY *screem = NULL;
 ALLEGRO_FONT *fonte = NULL;
 ALLEGRO_EVENT_QUEUE *fila_eventos = NULL;
+
  
-char str[17];
+char str[100];
  
 void manipular_entrada(ALLEGRO_EVENT evento);
 void exibir_texto_centralizado();
  
-bool initAllegro();
+bool initAllegro(int xTam, int yTam);
 bool carregar_arquivos();
 void finalizar();
-int telaPorta(void);
-
+int telaPorta(int idPorta);
 
  
-int telaPorta(){
-	
+ 
+int telaPorta(int idPorta){
+	char passe[50];
     bool sairPorta = false;
     bool concluidoPorta = false;
+	char frase1[50], frase2[50];
  
-    if (!initAllegro())
+    if (!initAllegro(480, 300))
     {
         return -1;
     }
@@ -33,6 +35,53 @@ int telaPorta(){
     {
         return -1;
     }
+    
+    switch(idPorta){
+		case 2:
+			strcpy(passe, "0159");
+			strcpy(frase1, "Tendo 3!+4!+5!+7!, organize a" );
+			strcpy(frase2, "soma de modo que vire o menor número");
+			break;
+		
+		case 3:
+			strcpy(passe, "70");
+			strcpy(frase1, "Tomando o binário: 1110 0010" );
+			strcpy(frase2, "quantas permutações podem ser feitas");
+			break;
+			
+		case 4:
+			strcpy(passe, "240");
+			strcpy(frase1, "Tendo duas chaves circulares com botões" );
+			strcpy(frase2, "qual o máximo de combinação, ambas tem 6 posições");
+			break;
+			
+		case 5:
+			strcpy(passe, "56");
+			strcpy(frase1, "Quantos grupos podem ser formados" );
+			strcpy(frase2, "com 3 smartphone de uma caixa de 8");
+			break;
+			
+		case 6:
+			strcpy(passe, "10");
+			strcpy(frase1, "Tendo 10 números onde " );
+			strcpy(frase2, "é tomado 2 em 2 ||  m = 4 e p = 2");
+			break;	
+			
+		case 7:
+			strcpy(passe, "cifra");
+			strcpy(frase1, "Tendo a cifra 'djgsb', decifre!" );
+			strcpy(frase2, "");
+			break;	
+			
+		case 8:
+			strcpy(passe, "decrypt");
+			strcpy(frase1, "Tendo 'Nombizd' e sabendo que " );
+			strcpy(frase2, "ela também é uma cifra, decifre!");
+			break;	
+		
+	}
+    
+	printf("PASSE PORTA ID = %d",idPorta);//APAGAR
  
     while (!sairPorta)
     {
@@ -41,19 +90,26 @@ int telaPorta(){
             ALLEGRO_EVENT evento;
             al_wait_for_event(fila_eventos, &evento);
  
+			
             if (!concluidoPorta)
             {
                 manipular_entrada(evento);
+                
+				if(evento.type == ALLEGRO_EVENT_KEY_DOWN && evento.keyboard.keycode == ALLEGRO_KEY_SPACE){
+					 finalizar();
+					 return 0;			
+				} 
+ 
  
                 if (evento.type == ALLEGRO_EVENT_KEY_DOWN && evento.keyboard.keycode == ALLEGRO_KEY_ENTER)
                 {
-                    
-                    if(strcmp(str, "12345") == 0){
+
+                    if(strcmp(str, passe) == 0){
 						concluidoPorta = true;
 						sairPorta = true;	
+						setbuf(stdin, NULL);
 						
-					}
-					
+					}					
                     
                 }
             }
@@ -64,11 +120,14 @@ int telaPorta(){
  
         if (!concluidoPorta)
         {
-            al_draw_text(fonte, al_map_rgb(255, 255, 255), 180, 0, ALLEGRO_ALIGN_CENTRE, "DIGITE A SENHA:");
+			al_draw_text(fonte, al_map_rgb(255, 255, 255), 220, 10, ALLEGRO_ALIGN_CENTRE, frase1);
+            al_draw_text(fonte, al_map_rgb(255, 255, 255), 220, 50, ALLEGRO_ALIGN_CENTRE, frase2);
+            al_draw_text(fonte, al_map_rgb(255, 255, 255), 220, 100, ALLEGRO_ALIGN_CENTRE, "DIGITE A SENHA:");
+            
         }
  
         exibir_texto_centralizado();
- 
+		
         al_flip_display();
     }
  
@@ -78,7 +137,7 @@ int telaPorta(){
 	return 0;
 }
  
-bool initAllegro(){
+bool initAllegro(int xTam, int yTam){
     if (!al_init())
     {
         fprintf(stderr, "Falha ao inicializar a biblioteca Allegro.\n");
@@ -105,7 +164,7 @@ bool initAllegro(){
         return false;
     }
  
-    screem = al_create_display(400, 200);
+    screem = al_create_display(xTam, yTam);
     if (!screem)
     {
         fprintf(stderr, "Falha ao criar a screem.\n");
@@ -136,7 +195,7 @@ bool carregar_arquivos(){
         return false;
     }
  
-    fonte = al_load_font("fontes/cubic.ttf", 30, 0);
+    fonte = al_load_font("fontes/cubic.ttf", 14, 0);
     if (!fonte)
     {
         fprintf(stderr, "Falha ao carregar fonte da tela de Senha.\n");
@@ -184,6 +243,6 @@ void manipular_entrada(ALLEGRO_EVENT evento){
 void exibir_texto_centralizado(){
 	
     if (strlen(str) > 0)
-        al_draw_text(fonte, al_map_rgb(255, 255, 255), 180, 100, ALLEGRO_ALIGN_CENTRE, str);
+        al_draw_text(fonte, al_map_rgb(255, 255, 255), 220, 200, ALLEGRO_ALIGN_CENTRE, str);
     
 }

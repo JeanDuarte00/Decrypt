@@ -1,10 +1,13 @@
 #include "lib.h"
 
-char descricoes[4][3000] = {
+//'3!'+'2!'+'5!'
 
-  "Permutação:\nTendo em mãos uma sequência ordenada qualquer com um número “n” de elementos distintos, qualquer outra sequência formada pelos mesmos “n”elementos reordenados é chamada de permutação."
 
-, "Combinação:\nSimples é um tipo de agrupamento no estudo sobre análise combinatória. Os agrupamentos formados com os elementos de um conjunto serão considerados combinações simples se os elementos dos agrupamentos diferenciarem apenas pela sua natureza."
+char respostas[4][3000] = {
+
+  "62120"
+
+, "dfljdfljkd"
 
 , "Arranjos:\nSão agrupamentos nos quais a ordem dos seus elementos faz a diferença. Por exemplo, os números de três algarismos formados pelos elementos {1, 2 e 3} são: 312, 321, 132, 123, 213, 231"
 

@@ -21,6 +21,7 @@
 
 	#include "lib/defines.h"
 	#include "lib/structs.h"
+	#include "lib/telaPorta.h"
 
 
 

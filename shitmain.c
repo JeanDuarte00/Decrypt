@@ -2,19 +2,18 @@
 
 bool keys[] = {false, false, false, false};
 enum KEYS{UP, DOWN, LEFT, RIGHT};
-enum tiles{ROCK, GRASS, PORTA1, PORTA2, PORTA3, PORTA4, PORTA5, PORTA6, PORTA7, PORTA8, DOOROPEN};
-enum quiz{PERMUT_SIMPLES};
+enum tiles{ROCK, GRASS, FLOOR, LAVA, WATER, DOOR1F, DOOR1A, BOOK,  DOOR2F, DOOR2A};
+
 
 int yE=1, xE=1;
 
 float cameraPosicao[2] = {0,0} ;
 
-bool ganhou = false;
+bool ganhou;
 
 ALLEGRO_TRANSFORM camera;
 
 ALLEGRO_FONT *textFont 			= NULL; 
-ALLEGRO_DISPLAY *window 		= NULL;
 ALLEGRO_DISPLAY *janela 		= NULL;
 ALLEGRO_TIMER *tempo 			= NULL;
 ALLEGRO_EVENT_QUEUE *eventos 	= NULL;
@@ -35,10 +34,6 @@ ALLEGRO_SAMPLE *creditSound 	= NULL;
 ALLEGRO_BITMAP *backGround 		= NULL;
 ALLEGRO_BITMAP *personagem 		= NULL;
 ALLEGRO_BITMAP *enime	 		= NULL;
-
-ALLEGRO_BITMAP *ghost	 		= NULL;
-
-
 ALLEGRO_BITMAP *fundoCredits 	= NULL;
 ALLEGRO_BITMAP *book 			= NULL;
 ALLEGRO_BITMAP *grama 			= NULL;
@@ -92,143 +87,91 @@ void atualizarBackgroundDownUp(BACKGROUND *fundo);
 void inicializarBackground(BACKGROUND *fundo, float x, float y, float velX, float velY, int largura, int altura, int dirX, int dirY, ALLEGRO_BITMAP *imagem );
 void abrirPorta(int mapa[DIM_COLUNA][DIM_LINHA], int *px, int *py, ALLEGRO_EVENT evento);
 void copiarMapa(int copiado[][DIM_LINHA], int original[][DIM_LINHA]);
-void initItem(ITEM *livro, ALLEGRO_BITMAP *explicacao,  int x, int y);
+//void initItem(ITEM *livro, ALLEGRO_BITMAP *explicacao, int x, int y, char desc[]);
+void initItem(ITEM *livro, int x, int y, char desc[]);
 void getItem(int xOFF, int yOFF, ITEM *livro);
 void printStage(int mapa[DIM_COLUNA][DIM_LINHA]);
 void allegroInput(ALLEGRO_EVENT evento);
 void exibir_texto_centralizado();
 int telaPorta();
 int relogio();
-void playEnime(int mapa[DIM_COLUNA][DIM_LINHA], ENIME *vilao, bool pos, int personagemX, int personagemY);
-void initEnime(ENIME *vilao, int x, int y, int vel);
-void clearWindow();
-bool enimeAtack(ENIME *vilao, int xOFF, int yOFF, int mapa[DIM_COLUNA][DIM_LINHA]);
-void showInfo();
-void waitFor();
-
-void waitFor(){
-	while (true){
-		
-		ALLEGRO_EVENT evento;        
-		al_wait_for_event(eventos, &evento);
-		
-		
-		if(evento.keyboard.keycode == ALLEGRO_KEY_ENTER){
-			break;
-		}
-		
-		
-		
-	}
-}
-
-void showInfo(){
-
-	al_set_target_bitmap( al_get_backbuffer( janela ) ); 
-		
-	ALLEGRO_BITMAP *info = al_load_bitmap("imagens/info.png");
-	al_draw_bitmap(info, 0, 0, 0);
-	al_flip_display();
+//void playEnime(int mapa[DIM_COLUNA][DIM_LINHA]);
+/*
+void playEnime(int mapa[DIM_COLUNA][DIM_LINHA]){
 	
-	waitFor();
-	al_destroy_bitmap(info);
+	bool lock = false;
 	
-}
-
-void clearWindow(){
+	if(mapa[xE][yE+1] == 1){
+		yE++;			
 	
-	if(window != NULL){				
-		al_set_target_bitmap( al_get_backbuffer( window ) );		
-		al_clear_to_color(al_map_rgb(0,0,0));
-		al_flip_display();
-		al_set_target_bitmap( al_get_backbuffer( janela) );		
+	}else if(mapa[xE][yE-1] == 1){
+		yE--;		
 		
 	}
 	
-}
-
-bool enimeAtack(ENIME *vilao, int xOFF, int yOFF, int mapa[DIM_COLUNA][DIM_LINHA]){
-	bool atack = false;
-	
-	if( (vilao->x == xOFF) && (vilao->y == yOFF) )	
-		atack = true;		
-	
-	//atack a distancia - duas casas a frente	
-	if( (vilao->x+TILE_TAM == xOFF) && (vilao->y == yOFF) )
-		atack = true;
-	
-	if( (vilao->x-TILE_TAM == xOFF) && (vilao->y == yOFF) )
-		atack = true;
+	if(mapa[xE+1][yE] == 1){
+		xE++;
 		
-	if( (vilao->x == xOFF) && (vilao->y+TILE_TAM == yOFF) )
-		atack = true;
+	}else if(mapa[xE-1][yE] == 1){
+		xE--;
 		
-	if( (vilao->x == xOFF) && (vilao->y-TILE_TAM == yOFF) )
-		atack = true;	
-	
-	
-	if(atack)
-		mapa[vilao->y/TILE_TAM][vilao->x/TILE_TAM] = 0;
-		
-	return atack;
-}
-
-void playEnime(int mapa[DIM_COLUNA][DIM_LINHA], ENIME *vilao, bool pos, int personagemX, int personagemY){
-
-	
-	vilao->check++;
-	//se verdade || true - mover na horizontal
-	if(vilao->check > vilao->lazy){
-		
-						
-		if(vilao->qtd < 10 && vilao->go){
-			vilao->mode = 0;				
-			vilao->qtd++;
-			if(pos)
-				vilao->x = vilao->x+TILE_TAM;
-			else
-				vilao->y = vilao->y+TILE_TAM;
-			vilao->go = true;
-			
-		}
-		else{
-			vilao->mode = 1;
-			vilao->qtd--;	
-			if(pos)
-				vilao->x = vilao->x-TILE_TAM;
-			else
-				vilao->y = vilao->y-TILE_TAM;
-			vilao->go = false;
-			
-			if(vilao->qtd == 0)
-				vilao->go = true;
-				
-			
-		}
-	
-		vilao->check = 0;
 	}
 	
-	/*printf("POS ENIME: y[%d]x[%d]qtd[%d]check[%d]", vilao->y,vilao->x,vilao->qtd,vilao->check);
-	if(vilao->go)
-		puts("true");
-	else
-		puts("false");
-	*/
+	if(mapa[xE][yE]){
+		
+	}
+	
+	printf("POS ENIME: [%d][%d]\n", yE,xE);
+	al_draw_bitmap(enime, yE*TILE_TAM, xE*TILE_TAM, 0);
 }
 
-void initEnime(ENIME *vilao,int x, int y, int vel){
+void playEnime(int mapa[DIM_COLUNA][DIM_LINHA]){
+	static int x=0,y=0;
+	static int oldX=0, oldY=0;
+	int posX;
+	int posY;
 	
-	vilao->imagem = ghost;//ghost é global
-	vilao->vivo = true;
-	vilao->x = x;
-	vilao->y = y;
-	vilao->lazy = vel;
-	vilao->qtd = 0;
-	vilao->go = true;	
-	vilao->check = 0;
+	srand( (unsigned)time(NULL) );
 	
+	posX = rand() % 10;
+	posY = rand() % 10;
+
+
+	if(posX >= 6){
+		
+		if(x < 10)
+			x = x + 1;			
+	}else{
+		
+		if(x > 0)
+			x = x - 1;
+	}
+	
+	
+	if(posY >= 6){
+		
+		if(y < 10)
+			y = y + 1;
+	}else{
+		
+		if(y > 0)
+			y = y - 1;
+	}
+
+	printf("ENIME MAPA: [%d][%d]\n", y,x);	
+	if(mapa[x][y] == GRASS){				
+		oldX = x; oldY = y;
+		al_draw_bitmap(enime, y*TILE_TAM, x*TILE_TAM, 0);	
+		//al_rest(2);
+		
+	}else{
+		printf("===========\nERRO POS\n===========\n");
+		al_draw_bitmap(enime, oldY*TILE_TAM, oldX*TILE_TAM, 0);	
+	}
+	
+	al_rest(0.001);
 }
+*/
 
 void atualizarCamera(float cameraPosicao[], float x, float y, int largura, int altura){
 	
@@ -262,39 +205,32 @@ void initBitmap(){
 	
 	backGround		=		al_create_bitmap(5000,5000);
 	al_set_target_bitmap(backGround);
-	al_clear_to_color( al_map_rgb(0, 200, 0 ) );
+	al_clear_to_color( al_map_rgb(255, 0, 0 ) );
 	
 		
 	
 	personagem 		= 		al_load_bitmap("imagens/ned/personagem.jpg");
 	enime 			= 		al_create_bitmap(50,50);
 	al_set_target_bitmap(enime);
-	al_clear_to_color( al_map_rgb(0, 0, 255 ) );
+	al_clear_to_color( al_map_rgb(0, 255, 0 ) );
 	
 	grama  			= 		al_load_bitmap("imagens/background/grass.png");
-	rocha  			= 		al_load_bitmap("imagens/background/rock1.png");
+	rocha  			= 		al_load_bitmap("imagens/background/rock.png");
+	
 	porta1f			= 		al_load_bitmap("imagens/background/porta1f.png");
 	porta1a 		= 		al_load_bitmap("imagens/background/porta1a.png");
 	porta2f			= 		al_load_bitmap("imagens/background/porta2f.png");
-	porta2a 		= 		al_load_bitmap("imagens/background/porta2a.png");
-
+	porta2f 		= 		al_load_bitmap("imagens/background/porta2a.png");
 
 
 	book			= 		al_load_bitmap("imagens/background/book.png");
-	fundo1 			= 		al_load_bitmap("imagens/background/head2.png");	
-	fires1 			= 		al_load_bitmap("imagens/background/fires.png");
-	fires2 			= 		al_load_bitmap("imagens/background/fires2.png");
 
 
-	fundoMenu		=		al_load_bitmap("imagens/fundo.png");		
+	
 	sombra  		=		al_load_bitmap("imagens/background/shadow.png");
 	luz  			=		al_load_bitmap("imagens/background/light.png");		
-	
 	ned1   			= 		al_load_bitmap("imagens/ned/ned_down.png");
 	ned2 			= 		al_load_bitmap("imagens/ned/ned_left.png");	
-
-	ghost			= 		al_load_bitmap("imagens/background/enime.png");
-	
 
 
 	text 			= 		al_load_bitmap("imagens/credits/text.png");
@@ -303,8 +239,7 @@ void initBitmap(){
 	blocoEsq		= 		al_load_bitmap("imagens/credits/left.png");
 	blocoDir		= 		al_load_bitmap("imagens/credits/right.png");	
 
-	logo 			= 		al_load_bitmap("imagens/badbaby.png");	
-	fogo 			= 		al_load_bitmap("imagens/background/lava.png");		
+	logo 			= 		al_load_bitmap("imagens/badbaby.png");		
 }
 
 void initSample(){
@@ -314,11 +249,11 @@ void initSample(){
 	grassWalk 		= 		al_load_sample("som/walkGrass.ogg");
 	floorWalk 		= 		al_load_sample("som/walkGrass.ogg");
 	bookSound	 	= 		al_load_sample("som/book.ogg");	
-	musica 			= 		al_load_sample("som/fundo.ogg");
+	
 	gameOverSound 	= 		al_load_sample("som/gameOver.ogg");	
 	introBadbaby 	= 		al_load_sample("som/laughBaby.ogg");	
 	creditSound 	= 		al_load_sample("som/credits.ogg");
-	level1Sound 	=		al_load_sample("som/level1.ogg");
+	
 
 
 }
@@ -329,28 +264,30 @@ void main(){
         return;
     }
     janela = al_create_display(LARGURA_TELA, ALTURA_TELA);
-    al_set_window_position(janela, 0,0);
+    al_set_window_position( janela, 0, 0);
+  
     
-	intro();    	
+	
+	
+	intro();  	
 	while(true){
 		if( menuPrincipal() ){
 			printf("JOgar...\n");				
-			
-			
 			if( playGame() ){
-				
-				if(ganhou)				
+				if( ganhou == true)
 					credits();
-				
-			}else{
-				gameOver();
 			}
+			else
+				gameOver();		
 			
 		}else{			
 			printf("Até a próxima\n");
 			return;		
-		}
+		}		
 	}
+	if(ganhou)
+		credits();
+		
 	al_destroy_display( janela );
 } 
 
@@ -369,42 +306,40 @@ void copiarMapa(int copiado[][DIM_LINHA], int original[][DIM_LINHA]){
 
 void abrirPorta(int mapa[DIM_COLUNA][DIM_LINHA], int *px, int *py, ALLEGRO_EVENT evento){	
 	
-	int passe = 0, pos = 0, tipo = 0;
+	int passe = 0, pos = 0;
 	int Y = *py, X = *px;
 	
 				
-	if( mapa[Y-1][X] == 2 || mapa[Y-1][X] == 3 || mapa[Y-1][X] == 4 || mapa[Y-1][X] == 5 || mapa[Y-1][X] == 6 || mapa[Y-1][X] == 7 || mapa[Y-1][X] == 8)//acima
+	if( mapa[Y-1][X] == DOOR1F )//acima
 		pos = -1;
-	if( mapa[Y+1][X] == 2 || mapa[Y+1][X] == 3 || mapa[Y+1][X] == 4 || mapa[Y+1][X] == 5 || mapa[Y+1][X] == 6 || mapa[Y+1][X] == 7 || mapa[Y+1][X] == 8)// abaixo
+	if( mapa[Y+1][X] == DOOR1F )//abaixo
 		pos = 1;
-	if( mapa[Y][X-1] == 2 || mapa[Y][X-1] == 3 || mapa[Y][X-1] == 4 || mapa[Y][X-1] == 5 || mapa[Y][X-1] == 6 || mapa[Y][X-1] == 7 || mapa[Y][X-1] == 8)//a esquerda
+	if( mapa[Y][X-1] == DOOR1F )//a esquerda
 		pos = -2;
-	if( mapa[Y][X+1] == 2 || mapa[Y][X+1] == 3 || mapa[Y][X+1] == 4 || mapa[Y][X+1] == 5 || mapa[Y][X+1] == 6 || mapa[Y][X+1] == 7 || mapa[Y][X+1] == 8)//a direita
+	if( mapa[Y][X+1] == DOOR1F )//a direita
 		pos = 2;		
 		
 	if(pos != 0){
+			
+		//printf("Digite o passe: ");
+		//scanf("%d", &passe);
 		
-		if(pos == -1) tipo = mapa[Y-1][X];
-		if(pos == 1) tipo = mapa[Y+1][X];
-		if(pos == -2) tipo = mapa[Y][X-1];
-		if(pos == 2) tipo = mapa[Y][X+1];
-		
-		passe = telaPorta(tipo);
+		passe = telaPorta();
 		
 		if(passe == 1){
 			printf("\n\nPASSE CORRETO\n\n");
-
+			
 			al_play_sample(openDoor, 1.0, 1.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);	
 			al_rest(4);
 			
 			if(pos == 1)
-				mapa[Y+1][X] = DOOROPEN; 
+				mapa[Y+1][X] = DOOR1A; 
 			if(pos == -1)
-				mapa[Y-1][X] = DOOROPEN;
+				mapa[Y-1][X] = DOOR1A;
 			if(pos == 2)
-				mapa[Y][X+1] = DOOROPEN;
+				mapa[Y][X+1] = DOOR1A;
 			if(pos == -2)
-				mapa[Y][X-1] = DOOROPEN;				
+				mapa[Y][X-1] = DOOR1A;				
 				
 		}
 		else{
@@ -416,36 +351,37 @@ void abrirPorta(int mapa[DIM_COLUNA][DIM_LINHA], int *px, int *py, ALLEGRO_EVENT
 	}        
 }
 
-
 void playSomPasso(int mapa[DIM_COLUNA][DIM_LINHA], int px, int py){	
 	float volume = 0.7;
 	if(mapa[py][px] == GRASS)
 		al_play_sample(grassWalk, volume, 1.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-	
+	if(mapa[py][px] == FLOOR)
+		al_play_sample(floorWalk, volume, 1.0, 0.5, ALLEGRO_PLAYMODE_ONCE, NULL);
 }
 
 void getItem(int xOFF, int yOFF, ITEM *livro){
 	
 	if(xOFF == livro->x && yOFF == livro->y){
-		
+		printf("GOT BOOK: %s\n\n", livro->descricao);				
 		al_play_sample(bookSound, 1.0, 1.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);		
 		livro->pego = true;	
-		
-		if(window == NULL)
-			window = al_create_display(400, 300);		
-		
-		al_set_target_bitmap( al_get_backbuffer( window ) );		
-		al_draw_bitmap(livro->explicacao, 0, 0, 0);
-
-		al_flip_display();				
-		
-		al_set_target_bitmap( al_get_backbuffer( janela ) );		
-
+		showTextBook(livro);
+		al_set_target_bitmap( al_get_backbuffer( janela ) );
 	}
 	
 }
 
-void initItem(ITEM *livro, ALLEGRO_BITMAP *explicacao,  int x, int y){
+void initItem(ITEM *livro, int x, int y, char desc[]){
+	livro->item = book;//imagem livro
+	livro->id = 1;
+	livro->x = x;
+	livro->y = y;
+	livro->lido = false;
+	livro->pego = false;
+	strcpy(livro->descricao, desc);
+	
+}
+/*void initItem(ITEM *livro, ALLEGRO_BITMAP *explicacao,  int x, int y, char desc[]){
 	livro->item = book;//imagem livro
 	livro->explicacao = explicacao;
 	livro->id = 1;
@@ -453,9 +389,10 @@ void initItem(ITEM *livro, ALLEGRO_BITMAP *explicacao,  int x, int y){
 	livro->y = y;
 	livro->lido = false;
 	livro->pego = false;
-	
+	strcpy(livro->descricao, desc);
 	
 }
+*/
 
 void printStage(int mapa[DIM_COLUNA][DIM_LINHA]){
 	
@@ -464,18 +401,16 @@ void printStage(int mapa[DIM_COLUNA][DIM_LINHA]){
 		
 		for(x=0; x<DIM_LINHA; x++){
 			
-			if(mapa[y][x] != ROCK)//se diferente de parede desenha grama, assim terá grama onde ficam as portas
-				al_draw_bitmap(grama, x*TILE_TAM, y*TILE_TAM, 0);	
-							
-			if(mapa[y][x] == ROCK)				
+			if(mapa[y][x] == GRASS)
+				al_draw_bitmap(grama, x*TILE_TAM, y*TILE_TAM, 0);				
+			else if(mapa[y][x] == ROCK)	
 				al_draw_bitmap(rocha, x*TILE_TAM, y*TILE_TAM, 0);		
-			
-			if(mapa[y][x] == 2 || mapa[y][x] == 3 || mapa[y][x] == 4 || mapa[y][x] == 5 || mapa[y][x] == 6 || mapa[y][x] == 7 || mapa[y][x] == 8)
+			else if(mapa[y][x] == DOOR1F)
 				al_draw_bitmap(porta1f, x*TILE_TAM, y*TILE_TAM, 0);		
+			else if(mapa[y][x] == DOOR1A)
+				al_draw_bitmap(porta1a, x*TILE_TAM, y*TILE_TAM, 0);		
+		
 			
-			if(mapa[y][x] == DOOROPEN)
-				al_draw_bitmap(porta1a, x*TILE_TAM, y*TILE_TAM, 0);	
-
 		}
 		
 	}
@@ -494,8 +429,7 @@ void printfShadow(){
 		
 }
 
-
-bool playGame(){
+/*bool playGame(){
 	
 	ganhou = false;
 	level1Sound 	=		al_load_sample("som/level1.ogg");
@@ -504,24 +438,15 @@ bool playGame(){
 	al_start_timer(tempo);
 	al_set_system_mouse_cursor(janela, ALLEGRO_SYSTEM_MOUSE_CURSOR_ARROW);
 	al_set_window_title(janela, "DECRYPT - THE GAME - Playing...");
-		
+	
 	ALLEGRO_BITMAP *explicacao1 = al_load_bitmap("imagens/toLearn/permutacaoSimples.png");
 	ALLEGRO_BITMAP *explicacao2 = al_load_bitmap("imagens/toLearn/permutacaoRepeticao.png");
 	ALLEGRO_BITMAP *explicacao3 = al_load_bitmap("imagens/toLearn/permutacaoCircular.png");
-	ALLEGRO_BITMAP *explicacao4 = al_load_bitmap("imagens/toLearn/combinacaoSimples.png");
-	ALLEGRO_BITMAP *explicacao5 = al_load_bitmap("imagens/toLearn/combinacaoRepeticao.png");
-	ALLEGRO_BITMAP *explicacao6 = al_load_bitmap("imagens/toLearn/cifra1.png");
-	ALLEGRO_BITMAP *explicacao7 = al_load_bitmap("imagens/toLearn/cifra2.png");
-	ALLEGRO_BITMAP *explicacao8 = al_load_bitmap("imagens/toLearn/paraMais.png");
 	
 	extern int mapa1[DIM_COLUNA][DIM_LINHA];
 	extern int mapa2[DIM_COLUNA][DIM_LINHA];
 	extern int mapa3[DIM_COLUNA][DIM_LINHA];		
 	extern int mapa4[DIM_COLUNA][DIM_LINHA];
-	extern int mapa5[DIM_COLUNA][DIM_LINHA];
-	extern int mapa6[DIM_COLUNA][DIM_LINHA];
-	extern int mapa7[DIM_COLUNA][DIM_LINHA];
-	extern int mapa8[DIM_COLUNA][DIM_LINHA];
 		
 	int mapa[DIM_COLUNA][DIM_LINHA];
 	int estagios = 1;
@@ -529,12 +454,8 @@ bool playGame(){
 	BACKGROUND BG;
 	
 	ITEM livro1;
-
-	ENIME vilao1;
-	ENIME vilao2;	
-	ENIME vilao3;
-	ENIME vilao4;
-	
+	ITEM livro2;
+	ITEM livro3;
 	
 	bool render		= false;
 	bool sair 		= false;
@@ -542,8 +463,6 @@ bool playGame(){
 	bool gotBook 	= false;
 	bool flagPos	= true;
 	
-	
-	int contResp = 0;
 	int min = 0;
 	int seg = 0;
 	int x,y;
@@ -562,89 +481,36 @@ bool playGame(){
 	ALLEGRO_BITMAP *jogador;
 	
 	registrarInputs();
-		
-	jogador = ned1;
-		
-	showInfo();	
-	
+			
 	al_play_sample(level1Sound, 0.5, 1.0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
+		
 			
 	inicializarBackground(&BG, 0, 0, 1, 0, LARGURA_TELA, ALTURA_TELA, -1, 1, fundoMenu);
 
+	jogador = ned1;
 	
 	while( !ganhou && !aborta){
 		
-		
 		if(estagios == 1){						
-			copiarMapa(mapa, mapa1);			
-			initItem(&livro1, explicacao1, 29*TILE_TAM, 28*TILE_TAM);				
-			initEnime(&vilao1, 18*TILE_TAM, 1*TILE_TAM, 10);			
-			initEnime(&vilao2, 14*TILE_TAM, 34*TILE_TAM, 6);
-			initEnime(&vilao3, 2*TILE_TAM, 1*TILE_TAM, 10);	
-			initEnime(&vilao4, 25*TILE_TAM, 20*TILE_TAM, 10);								
+			copiarMapa(mapa, mapa1);
+			initItem(&livro1, explicacao1, 19*TILE_TAM, 1*TILE_TAM, descricoes[estagios-1]);			
+			initItem(&livro2, explicacao2, 6*TILE_TAM, 28*TILE_TAM, descricoes[estagios-1]);			
+			initItem(&livro3, explicacao3, 29*TILE_TAM, 28*TILE_TAM, descricoes[estagios-1]);			
 			sair = false;
 			
 		}else if(estagios == 2){
 			copiarMapa(mapa, mapa2);
-			initItem(&livro1, explicacao2, 27*TILE_TAM, 5*TILE_TAM);
-			initEnime(&vilao1,27*TILE_TAM, 5*TILE_TAM, 10);
-			initEnime(&vilao2,2*TILE_TAM, 1*TILE_TAM, 10);	
-			initEnime(&vilao3,40*TILE_TAM, 30*TILE_TAM, 10);	
-			initEnime(&vilao4,4*TILE_TAM, 3*TILE_TAM, 10);	
+			initItem(&livro1, explicacao1, 27*TILE_TAM, 5*TILE_TAM, descricoes[estagios-1]);
 			sair = false;
 			
 		}else if(estagios == 3){						
 			copiarMapa(mapa, mapa3);
-			initItem(&livro1, explicacao3, 37*TILE_TAM, 3*TILE_TAM);
-			initEnime(&vilao1, 2*TILE_TAM, 20*TILE_TAM, 5);	
-			initEnime(&vilao2, 2*TILE_TAM, 2*TILE_TAM, 15);	
-			initEnime(&vilao3, 14*TILE_TAM, 34*TILE_TAM, 6);	
-			initEnime(&vilao4, 25*TILE_TAM, 20*TILE_TAM, 10);	
+			initItem(&livro1, explicacao1, 37*TILE_TAM, 3*TILE_TAM, descricoes[estagios-1]);
 			sair = false;
 			
 		}else if(estagios == 4){						
 			copiarMapa(mapa, mapa4);
-			initItem(&livro1, explicacao4, 15*TILE_TAM, 24*TILE_TAM);
-			initEnime(&vilao1, 2*TILE_TAM, 20*TILE_TAM, 5);	
-			initEnime(&vilao2, 14*TILE_TAM, 34*TILE_TAM, 3);	
-			initEnime(&vilao3, 25*TILE_TAM, 20*TILE_TAM, 6);	
-			initEnime(&vilao4, 5*TILE_TAM, 2*TILE_TAM, 4);	
-			sair = false;
-			
-		}else if(estagios == 5){						
-			copiarMapa(mapa, mapa5);
-			initItem(&livro1, explicacao5, 15*TILE_TAM, 24*TILE_TAM);
-			initEnime(&vilao1,  2*TILE_TAM, 20*TILE_TAM, 5);	
-			initEnime(&vilao2, 14*TILE_TAM, 34*TILE_TAM, 3);	
-			initEnime(&vilao3, 25*TILE_TAM, 20*TILE_TAM, 6);	
-			initEnime(&vilao4, 5*TILE_TAM, 2*TILE_TAM, 4);	
-			sair = false;
-			
-		}else if(estagios == 6){						
-			copiarMapa(mapa, mapa6);
-			initItem(&livro1, explicacao6, 15*TILE_TAM, 24*TILE_TAM);
-			initEnime(&vilao1, 2*TILE_TAM, 20*TILE_TAM, 6);	
-			initEnime(&vilao2, 14*TILE_TAM, 34*TILE_TAM, 3);	
-			initEnime(&vilao3, 25*TILE_TAM, 20*TILE_TAM, 4);	
-			initEnime(&vilao4, 5*TILE_TAM, 2*TILE_TAM, 2);	
-			sair = false;
-			
-		}else if(estagios == 7){						
-			copiarMapa(mapa, mapa7);
-			initItem(&livro1, explicacao7, 15*TILE_TAM, 24*TILE_TAM);
-			initEnime(&vilao1, 2*TILE_TAM, 20*TILE_TAM, 2);	
-			initEnime(&vilao2, 14*TILE_TAM, 34*TILE_TAM, 2);	
-			initEnime(&vilao3, 25*TILE_TAM, 20*TILE_TAM, 2);	
-			initEnime(&vilao4, 5*TILE_TAM, 2*TILE_TAM, 2);	
-			sair = false;
-			
-		}else if(estagios == 8){						
-			copiarMapa(mapa, mapa8);
-			initItem(&livro1, explicacao8, 15*TILE_TAM, 23*TILE_TAM);
-			initEnime(&vilao1, 2*TILE_TAM, 20*TILE_TAM, 4);	
-			initEnime(&vilao2, 14*TILE_TAM, 34*TILE_TAM, 4);	
-			initEnime(&vilao3, 25*TILE_TAM, 20*TILE_TAM, 4);	
-			initEnime(&vilao4, 5*TILE_TAM, 2*TILE_TAM, 4);	
+			initItem(&livro1, explicacao1, 15*TILE_TAM, 24*TILE_TAM, descricoes[estagios-1]);
 			sair = false;
 			
 		}else{					
@@ -655,7 +521,6 @@ bool playGame(){
 		}			
 		
 		
-		//aqui é onde ficar toda execução real do jogo
 		while( !sair ){		
 			
 			al_set_target_bitmap( al_get_backbuffer( janela ) ); 
@@ -663,41 +528,31 @@ bool playGame(){
 			al_draw_bitmap(backGround, 0, 0, 0);
 			
 			printStage(mapa);
-						
-			//-------------LIVROS---------------------
+			
 			if(!livro1.pego){
 				al_draw_bitmap(livro1.item, livro1.x, livro1.y, 0);				
 				getItem(xOFF, yOFF, &livro1);			
 			}
+			
+			if(!livro2.pego){
+				al_draw_bitmap(livro2.item, livro2.x, livro2.y, 0);				
+				getItem(xOFF, yOFF, &livro2);			
+			}
+				
+			if(!livro3.pego){
+				al_draw_bitmap(livro3.item, livro3.x, livro3.y, 0);				
+				getItem(xOFF, yOFF, &livro3);			
+			}
+			
+			
 
-			al_draw_bitmap(jogador, xOFF, yOFF, move);	
-			//----------------------------------------
 			
+			al_draw_bitmap(jogador, xOFF, yOFF, move);		
 			
-			//---------------------ENIME-----------			
-			al_draw_bitmap(vilao1.imagem, vilao1.x, vilao1.y, 2);					
-			playEnime(mapa, &vilao1, false, xOFF*TILE_TAM, yOFF*TILE_TAM);
-			
-			al_draw_bitmap(vilao2.imagem, vilao2.x, vilao2.y, 2);		
-			playEnime(mapa, &vilao2, true, xOFF*TILE_TAM, yOFF*TILE_TAM);		
-			
-			al_draw_bitmap(vilao3.imagem, vilao3.x, vilao3.y, 3);					
-			playEnime(mapa, &vilao3, false, xOFF*TILE_TAM, yOFF*TILE_TAM);
-						
-			al_draw_bitmap(vilao4.imagem, vilao4.x, vilao4.y, 3);					
-			playEnime(mapa, &vilao4, false, xOFF*TILE_TAM, yOFF*TILE_TAM);			
-						 
-			if( enimeAtack(&vilao1, xOFF, yOFF, mapa) == true || enimeAtack(&vilao2, xOFF, yOFF, mapa) == true || enimeAtack(&vilao3, xOFF, yOFF, mapa) == true || enimeAtack(&vilao4, xOFF, yOFF, mapa) == true){
-				clearWindow();
-				al_destroy_sample(level1Sound);
-				return false;
-			}	
-			//----------------------------------------
 
-			//------ATUALIZA POSIÇÃO CÂMERA-----------
 			al_draw_bitmap(blocoEsq, cameraPosicao[0]-100, cameraPosicao[1], 0);
 			al_draw_bitmap(blocoDir, cameraPosicao[0]+335, cameraPosicao[1], 0);
-			//----------------------------------------
+			
 
 			while ( !al_is_event_queue_empty(eventos) ){
 				ALLEGRO_EVENT evento;        
@@ -710,14 +565,12 @@ bool playGame(){
 				al_use_transform(&camera);
 
 				
-			
-				if(evento.type == ALLEGRO_EVENT_KEY_DOWN && evento.keyboard.keycode == ALLEGRO_KEY_ENTER){
+
+				if(evento.keyboard.keycode == ALLEGRO_KEY_ENTER){
 					abrirPorta(mapa, &px, &py, evento);			
-				}		
-		
+				}
 				
-				
-				if(mapa[py][px] == DOOROPEN){
+				if(mapa[py][px] == DOOR1A){
 					sair = true;					
 					estagios += 1;					
 					printf("PRÓXIMO NÍVEL\n\n");
@@ -726,8 +579,7 @@ bool playGame(){
 				if(evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE){
 									
 					sair = true;
-					aborta = true;
-					
+					aborta = true;				
 						
 				}else if(evento.type == ALLEGRO_EVENT_KEY_DOWN){
 					
@@ -736,12 +588,11 @@ bool playGame(){
 						
 						sair = true;
 						aborta = true;
-					
 					}
 					
 					if(evento.keyboard.keycode == ALLEGRO_KEY_LEFT){
 					
-						if(mapa[py][px-1] != ROCK && !(mapa[py][px-1] >= 2 && mapa[py][px-1] <= 8) ){
+						if(mapa[py][px-1] != ROCK && mapa[py][px-1] != DOOR1F && mapa[py][px-1] != DOOR2F){
 								xOFF -= TILE_TAM;
 								px -= 1;
 								jogador = ned2;
@@ -751,7 +602,7 @@ bool playGame(){
 					}
 
 					if(evento.keyboard.keycode == ALLEGRO_KEY_RIGHT){					
-						if(mapa[py][px+1] != ROCK && !(mapa[py][px+1] >= 2 && mapa[py][px+1] <= 8)){					
+						if(mapa[py][px+1] != ROCK && mapa[py][px+1] != DOOR1F && mapa[py][px+1] != DOOR2F){					
 							xOFF += TILE_TAM;
 							px += 1;
 							jogador = ned2;
@@ -761,7 +612,7 @@ bool playGame(){
 					}
 					
 					if(evento.keyboard.keycode == ALLEGRO_KEY_DOWN){					
-						if(mapa[py+1][px] != ROCK && !(mapa[py+1][px] >= 2 && mapa[py+1][px] <= 8)){					
+						if(mapa[py+1][px] != ROCK && mapa[py+1][px] != DOOR1F && mapa[py+1][px] != DOOR2F){					
 							yOFF += TILE_TAM;
 							py += 1;
 							jogador = ned1;
@@ -771,7 +622,7 @@ bool playGame(){
 					}
 					
 					if(evento.keyboard.keycode == ALLEGRO_KEY_UP){					
-						if(mapa[py-1][px] != ROCK && !(mapa[py-1][px] >= 2 && mapa[py-1][px] <= 8)){					
+						if(mapa[py-1][px] != ROCK && mapa[py-1][px] != DOOR1F && mapa[py-1][px] != DOOR1F){					
 							yOFF -= TILE_TAM;
 							py -= 1;
 							jogador = ned1;
@@ -799,18 +650,14 @@ bool playGame(){
 	al_destroy_bitmap(fundoMenu);
 	al_destroy_event_queue(eventos);	
 	
-	clearWindow();
+	
 	return true;
 }
+*/
+
 
 
 void credits(){	
-	cameraPosicao[0] = 0;
-	cameraPosicao[1] = 0;
-
-	al_identity_transform(&camera);
-	al_translate_transform(&camera, cameraPosicao[0], cameraPosicao[1]);
-	al_use_transform(&camera);
 
 	al_set_target_bitmap( al_get_backbuffer( janela ) ); 
 	BACKGROUND BG;
@@ -859,20 +706,13 @@ void intro(){
 }
 
 void gameOver(){	
-	cameraPosicao[0] = 0;
-	cameraPosicao[1] = 0;
-
-	al_identity_transform(&camera);
-	al_translate_transform(&camera, cameraPosicao[0], cameraPosicao[1]);
-	al_use_transform(&camera);
-
-	al_set_target_bitmap( al_get_backbuffer( janela ) ); 
-	
 	textFont 	=	al_load_font("fontes/orderElfic.ttf", 100, 0);
 	
+	al_set_target_bitmap( al_get_backbuffer( janela ) ); 
+
 	al_set_window_title(janela, "GAME OVER - YOU LOSE - YOU DIED - GANHOU UM OVO");
-	
-	al_draw_bitmap(fundoMenu, cameraPosicao[0], cameraPosicao[1], 0);
+
+	al_draw_bitmap(fundoGameOver, 0, 0, 0);
 	
 	al_play_sample(gameOverSound, 1.0, 1.0, 0.9, ALLEGRO_PLAYMODE_ONCE, NULL);
 	al_rest(1);	
@@ -885,7 +725,12 @@ void gameOver(){
 	
 	fadeinWindow(0.5, true);
 	
-	al_rest(3);	
+	al_rest(2);	
+	
+	al_destroy_sample(gameOverSound);
+	al_destroy_bitmap(fundoGameOver);
+	al_destroy_bitmap(blocoDir);
+	al_destroy_bitmap(blocoEsq);
 }
 
 void fadeinWindow(int velocidade, bool fadeIn){
@@ -1154,7 +999,6 @@ bool menuPrincipal(void){
 }
 
 
- 
  
 bool inicializar(){
 	

@@ -27,15 +27,30 @@ typedef struct fire{
 	
 }ANIMATION_FIRE;
 
+typedef struct tVilao{
 
-typedef struct item{
+	ALLEGRO_BITMAP *imagem;	
+	bool vivo;	
+	int x;
+	int y;
+	int lazy;
+	int qtd;
+	int mode;
+	bool go;	
+	int check;
+	
+	
+}ENIME;
+
+typedef struct itens{
 
 	ALLEGRO_BITMAP *item;	
+	ALLEGRO_BITMAP *explicacao;
 	int id;
 	int x;
 	int y;
 	bool lido;
 	bool pego;
-	char descricao[3000];
+	char resposta[3000];
 	
 }ITEM;
